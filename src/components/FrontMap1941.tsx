@@ -1,60 +1,98 @@
 import { useState } from 'react';
 import Icon from '@/components/ui/icon';
-import { frontRegions, type FrontRegion } from '@/data/content';
+import UssrMap from '@/components/UssrMap';
+import { offensives, type Offensive } from '@/data/content';
 
 const FrontMap1941 = () => {
-  const [hover, setHover] = useState<FrontRegion | null>(null);
+  const [active, setActive] = useState<Offensive | null>(null);
 
   return (
-    <div className="relative aspect-[16/9] rounded-2xl border border-border bg-card grain overflow-hidden">
-      <div className="absolute inset-0 bg-gradient-to-r from-accent/10 via-transparent to-primary/10" />
+    <div className="grid lg:grid-cols-[1fr_320px] gap-6 items-start">
+      <div className="relative rounded-2xl border border-border bg-card grain overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-accent/10 via-transparent to-primary/5 pointer-events-none" />
 
-      <div className="absolute left-4 top-4 z-20 text-xs font-display uppercase tracking-widest text-muted-foreground">
-        Восточный фронт · 1941
-      </div>
-      <div className="absolute right-4 top-4 z-20 flex items-center gap-2 text-xs text-muted-foreground">
-        <span className="h-2 w-4 rounded-sm bg-accent/70" /> Наступление вермахта
-      </div>
-
-      <svg viewBox="0 0 100 100" className="absolute inset-0 h-full w-full opacity-25" preserveAspectRatio="none">
-        <path d="M18,28 Q40,16 62,22 T92,32 Q96,55 82,72 T55,86 Q32,88 22,72 T18,28 Z" fill="none" stroke="hsl(var(--primary))" strokeWidth="0.3" />
-      </svg>
-
-      {frontRegions.map((r) => (
-        <button
-          key={r.id}
-          onMouseEnter={() => setHover(r)}
-          onMouseLeave={() => setHover(null)}
-          onClick={() => setHover(r)}
-          style={{ left: `${r.x}%`, top: `${r.y}%`, width: `${r.w}%`, height: `${r.h}%` }}
-          className="absolute rounded-lg border-2 border-dashed border-accent/40 bg-accent/5 hover:bg-accent/20 hover:border-accent transition-colors group"
-        >
-          <span className="absolute left-2 top-2 text-[10px] font-display uppercase text-accent/80 group-hover:text-accent">
-            {r.date}
-          </span>
-          <Icon name="Crosshair" className="absolute inset-0 m-auto text-accent/40 group-hover:text-accent transition-colors" size={20} />
-        </button>
-      ))}
-
-      {hover && (
-        <div
-          className="absolute z-30 w-72 rounded-xl border border-border bg-popover shadow-2xl overflow-hidden animate-float-up pointer-events-none"
-          style={{
-            left: `${Math.min(hover.x + hover.w + 1, 62)}%`,
-            top: `${Math.min(hover.y, 55)}%`,
-          }}
-        >
-          <div className="h-28 w-full overflow-hidden relative">
-            <img src={hover.img} alt={hover.name} className="h-full w-full object-cover" />
-            <div className="absolute inset-0 bg-gradient-to-t from-popover via-popover/20 to-transparent" />
-            <span className="absolute bottom-2 left-3 text-xs font-display uppercase tracking-wide text-primary">{hover.date}</span>
-          </div>
-          <div className="p-4">
-            <h4 className="font-display text-lg uppercase leading-tight mb-2">{hover.name}</h4>
-            <p className="text-xs text-muted-foreground leading-relaxed">{hover.info}</p>
-          </div>
+        <div className="absolute left-4 top-4 z-20 text-xs font-display uppercase tracking-widest text-muted-foreground">
+          Восточный фронт · 22 июня 1941
         </div>
-      )}
+
+        <UssrMap
+          className="relative w-full h-auto"
+          defs={
+            <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+              <path d="M 0 0 L 10 5 L 0 10 z" fill="hsl(var(--accent))" />
+            </marker>
+          }
+        >
+          {/* линия фронта (граница 1941) */}
+          <path d="M 250 220 L 250 380" stroke="hsl(var(--accent) / 0.5)" strokeWidth="3" strokeDasharray="8 6" fill="none" />
+
+          {offensives.map((o) => {
+            const on = active?.id === o.id;
+            return (
+              <g
+                key={o.id}
+                className="cursor-pointer"
+                onMouseEnter={() => setActive(o)}
+                onClick={() => setActive(o)}
+              >
+                <path
+                  d={o.path}
+                  fill="none"
+                  stroke="hsl(var(--accent))"
+                  strokeWidth={on ? 7 : 4}
+                  strokeLinecap="round"
+                  markerEnd="url(#arrow)"
+                  opacity={on ? 1 : 0.55}
+                  className="transition-all"
+                />
+                <circle cx={o.lx} cy={o.ly} r={on ? 7 : 5} fill="hsl(var(--accent))" stroke="hsl(var(--background))" strokeWidth="2" className="transition-all" />
+              </g>
+            );
+          })}
+        </UssrMap>
+
+        <div className="absolute right-4 bottom-4 z-20 flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="h-2 w-5 rounded-sm bg-accent/70" /> Удары вермахта
+        </div>
+      </div>
+
+      <div className="rounded-2xl border border-border bg-card overflow-hidden">
+        {active ? (
+          <div key={active.id} className="animate-float-up">
+            <div className="bg-gradient-to-r from-accent/20 to-transparent p-5 border-b border-border">
+              <span className="text-xs font-display uppercase tracking-widest text-accent">{active.date}</span>
+              <h4 className="font-display text-xl uppercase leading-tight mt-1">{active.name}</h4>
+            </div>
+            <div className="p-5">
+              <div className="flex items-center gap-2 text-xs text-muted-foreground mb-3">
+                <Icon name="Swords" size={14} className="text-accent" />
+                {active.army}
+              </div>
+              <p className="text-sm text-muted-foreground leading-relaxed">{active.info}</p>
+            </div>
+          </div>
+        ) : (
+          <div className="p-8 text-center text-muted-foreground">
+            <Icon name="Crosshair" className="mx-auto mb-3 text-accent/60" size={32} />
+            <p className="text-sm">Наведите на стрелку удара,<br />чтобы открыть карточку направления</p>
+          </div>
+        )}
+
+        <div className="px-5 pb-5 flex flex-col gap-1.5">
+          {offensives.map((o) => (
+            <button
+              key={o.id}
+              onMouseEnter={() => setActive(o)}
+              onClick={() => setActive(o)}
+              className={`text-left rounded-lg px-3 py-2 text-xs font-display uppercase tracking-wide transition-colors ${
+                active?.id === o.id ? 'bg-accent text-accent-foreground' : 'bg-background text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              {o.army}
+            </button>
+          ))}
+        </div>
+      </div>
     </div>
   );
 };

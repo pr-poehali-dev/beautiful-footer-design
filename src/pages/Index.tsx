@@ -1,8 +1,9 @@
 import Icon from '@/components/ui/icon';
 import HeroCitiesMap from '@/components/HeroCitiesMap';
 import FrontMap1941 from '@/components/FrontMap1941';
+import StatsSection from '@/components/StatsSection';
 import SiteFooter from '@/components/SiteFooter';
-import { stats, timeline } from '@/data/content';
+import { timeline } from '@/data/content';
 
 const heroImg = 'https://cdn.poehali.dev/projects/7836e47e-38ae-4724-91ec-b2ed2318e8c0/files/81542781-7838-41ef-bb0a-83445c7faae1.jpg';
 
@@ -38,17 +39,7 @@ const Index = () => {
       </header>
 
       {/* STATS */}
-      <section className="border-y border-border bg-card">
-        <div className="container grid grid-cols-2 lg:grid-cols-4 divide-x divide-border">
-          {stats.map((s) => (
-            <div key={s.label} className="px-4 py-8 text-center">
-              <Icon name={s.icon} className="mx-auto mb-3 text-primary" size={26} />
-              <div className="text-3xl md:text-4xl font-display text-gradient">{s.value}</div>
-              <div className="mt-1 text-xs text-muted-foreground uppercase tracking-wide">{s.label}</div>
-            </div>
-          ))}
-        </div>
-      </section>
+      <StatsSection />
 
       {/* HERO CITIES MAP */}
       <section id="cities" className="container py-20">
