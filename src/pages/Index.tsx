@@ -1,6 +1,6 @@
 import Icon from '@/components/ui/icon';
-import HeroCitiesMap from '@/components/HeroCitiesMap';
-import FrontMap1941 from '@/components/FrontMap1941';
+import HeroCitiesCards from '@/components/HeroCitiesCards';
+import Invasion1941 from '@/components/Invasion1941';
 import StatsSection from '@/components/StatsSection';
 import SiteFooter from '@/components/SiteFooter';
 import { timeline } from '@/data/content';
@@ -29,10 +29,10 @@ const Index = () => {
           </p>
           <div className="mt-8 flex flex-wrap gap-4 animate-float-up" style={{ animationDelay: '0.3s' }}>
             <a href="#cities" className="inline-flex items-center gap-2 rounded-lg bg-primary px-6 py-3 font-display uppercase text-sm tracking-wide text-primary-foreground hover:brightness-110 transition">
-              <Icon name="MapPin" size={18} /> Открыть карту
+              <Icon name="Shield" size={18} /> Города-герои
             </a>
-            <a href="#timeline" className="inline-flex items-center gap-2 rounded-lg border border-border px-6 py-3 font-display uppercase text-sm tracking-wide hover:border-primary transition">
-              <Icon name="Clock" size={18} /> Хроника войны
+            <a href="#invasion" className="inline-flex items-center gap-2 rounded-lg border border-border px-6 py-3 font-display uppercase text-sm tracking-wide hover:border-primary transition">
+              <Icon name="Swords" size={18} /> Хроника вторжения
             </a>
           </div>
         </div>
@@ -41,33 +41,33 @@ const Index = () => {
       {/* STATS */}
       <StatsSection />
 
-      {/* HERO CITIES MAP */}
+      {/* HERO CITIES */}
       <section id="cities" className="container py-20">
         <div className="mb-10">
-          <span className="text-xs font-display uppercase tracking-widest text-primary">Карта подвига</span>
+          <span className="text-xs font-display uppercase tracking-widest text-primary">12 городов</span>
           <h2 className="text-4xl md:text-5xl font-display uppercase mt-2">Города-герои</h2>
-          <p className="mt-3 max-w-2xl text-muted-foreground">Нажмите на отмеченные города, чтобы узнать их историю.</p>
+          <p className="mt-3 max-w-2xl text-muted-foreground">Нажмите на карточку, чтобы перевернуть и узнать историю города.</p>
         </div>
-        <HeroCitiesMap />
+        <HeroCitiesCards />
       </section>
 
-      {/* FRONT MAP 1941 */}
-      <section className="border-t border-border bg-card/40">
+      {/* INVASION 1941 */}
+      <section id="invasion" className="border-t border-border bg-card/40">
         <div className="container py-20">
           <div className="mb-10">
             <span className="text-xs font-display uppercase tracking-widest text-accent">22 июня 1941</span>
-            <h2 className="text-4xl md:text-5xl font-display uppercase mt-2">Карта вторжения</h2>
-            <p className="mt-3 max-w-2xl text-muted-foreground">Наведите курсор на направления удара, чтобы открыть карточку с деталями.</p>
+            <h2 className="text-4xl md:text-5xl font-display uppercase mt-2">Три удара вермахта</h2>
+            <p className="mt-3 max-w-2xl text-muted-foreground">Выберите группу армий — откроется хроника наступления по фазам.</p>
           </div>
-          <FrontMap1941 />
+          <Invasion1941 />
         </div>
       </section>
 
       {/* TIMELINE */}
       <section id="timeline" className="container py-20">
         <div className="mb-10">
-          <span className="text-xs font-display uppercase tracking-widest text-primary">Хроника</span>
-          <h2 className="text-4xl md:text-5xl font-display uppercase mt-2">Таймлайн войны</h2>
+          <span className="text-xs font-display uppercase tracking-widest text-primary">Хроника войны</span>
+          <h2 className="text-4xl md:text-5xl font-display uppercase mt-2">Путь к Победе</h2>
         </div>
         <div className="relative pl-6 md:pl-0">
           <div className="absolute left-[7px] md:left-1/2 top-0 bottom-0 w-px bg-border md:-translate-x-1/2" />
