@@ -1,231 +1,310 @@
 import { useState } from 'react';
 import Icon from '@/components/ui/icon';
+import { armyGroups, vehiclesWehrmacht, vehiclesRedArmy, type ArmyGroup, type Vehicle } from '@/data/content';
 
-type Phase = {
-  date: string;
-  event: string;
-  detail: string;
-};
-
-type Army = {
-  id: string;
-  name: string;
-  commander: string;
-  direction: string;
-  icon: string;
-  color: string;
-  strength: string;
-  divisions: number;
-  advanceKm: number;
-  result: string;
-  outcome: 'stopped' | 'partial' | 'failed';
-  phases: Phase[];
-};
-
-const armies: Army[] = [
-  {
-    id: 'north',
-    name: 'Группа армий «Север»',
-    commander: 'Фельдмаршал В. фон Лееб',
-    direction: 'Восточная Пруссия → Прибалтика → Ленинград',
-    icon: 'Navigation',
-    color: '#ef4444',
-    strength: '29 дивизий',
-    divisions: 29,
-    advanceKm: 900,
-    result: 'Остановлена у Ленинграда. Началась блокада (8 сент. 1941).',
-    outcome: 'partial',
-    phases: [
-      { date: '22 июня', event: 'Прорыв границы в Восточной Пруссии', detail: 'Три армейских корпуса атакуют одновременно по всей полосе.' },
-      { date: '28 июня', event: 'Захват Риги', detail: 'Стремительный марш через Литву и Латвию — 300 км за 6 дней.' },
-      { date: '10 июля', event: 'Бои на реке Луга', detail: 'Советские войска организуют первую серьёзную оборонительную линию.' },
-      { date: '8 сент.', event: 'Блокада Ленинграда', detail: 'Кольцо замыкается. Начинается 872-дневная осада города.' },
-    ],
-  },
-  {
-    id: 'center',
-    name: 'Группа армий «Центр»',
-    commander: 'Фельдмаршал Ф. фон Бок',
-    direction: 'Польша → Минск → Смоленск → Москва',
-    icon: 'Target',
-    color: '#f97316',
-    strength: '51 дивизия (главный удар)',
-    divisions: 51,
-    advanceKm: 1000,
-    result: 'Разбита под Москвой зимой 1941–42. Первое поражение вермахта.',
-    outcome: 'failed',
-    phases: [
-      { date: '22 июня', event: 'Двойное окружение под Белостоком и Минском', detail: 'В котлы попало более 300 тыс. советских солдат.' },
-      { date: '3 июля', event: 'Захват Минска', detail: 'Столица БССР занята. Группа армий продвигается рекордными темпами.' },
-      { date: '10–18 июля', event: 'Смоленское сражение', detail: 'Упорные бои задержали наступление на Москву на 2 месяца.' },
-      { date: '2 окт.', event: 'Операция «Тайфун»', detail: 'Финальный удар на Москву. Советская оборона трещит по швам.' },
-      { date: '5–6 дек.', event: 'Контрнаступление под Москвой', detail: 'Красная Армия отбрасывает вермахт на 100–250 км. Первое стратегическое поражение Германии.' },
-    ],
-  },
-  {
-    id: 'south',
-    name: 'Группа армий «Юг»',
-    commander: 'Фельдмаршал Г. фон Рундштедт',
-    direction: 'Польша + Румыния → Украина → Кавказ',
-    icon: 'Flame',
-    color: '#eab308',
-    strength: '57 дивизий',
-    divisions: 57,
-    advanceKm: 1400,
-    result: 'Заняла Украину, Донбасс. Остановлена у Сталинграда в 1942.',
-    outcome: 'partial',
-    phases: [
-      { date: '22 июня', event: 'Удар из Польши и Румынии', detail: 'Два фланга смыкаются, охватывая западную Украину.' },
-      { date: '19 сент.', event: 'Падение Киева', detail: 'Крупнейшее окружение в истории войн — более 600 тыс. пленных.' },
-      { date: '16 окт.', event: 'Захват Одессы', detail: 'После 73 дней героической обороны советские войска эвакуированы морем.' },
-      { date: 'Нояб. 1941', event: 'Захват Крыма и подход к Ростову', detail: 'Севастополь держится в осаде. Ростов взят и вскоре отбит.' },
-    ],
-  },
-];
-
-const outcomeLabel: Record<Army['outcome'], { label: string; icon: string; cls: string }> = {
-  failed: { label: 'Разбита', icon: 'XCircle', cls: 'text-green-400' },
-  partial: { label: 'Остановлена', icon: 'MinusCircle', cls: 'text-yellow-400' },
-  stopped: { label: 'Отброшена', icon: 'CheckCircle', cls: 'text-green-400' },
-};
-
-const Invasion1941 = () => {
-  const [open, setOpen] = useState<string>('center');
-  const [activePhase, setActivePhase] = useState<number>(0);
-
-  const active = armies.find((a) => a.id === open)!;
-
+// ── Карточка техники ──────────────────────────────────────────────────────────
+const VehicleCard = ({ v }: { v: Vehicle }) => {
+  const [open, setOpen] = useState(false);
   return (
-    <div className="grid lg:grid-cols-[280px_1fr] gap-0 rounded-2xl border border-border overflow-hidden">
-      {/* Sidebar — выбор группы армий */}
-      <div className="bg-card border-r border-border grain divide-y divide-border">
-        {armies.map((a) => {
-          const on = open === a.id;
-          return (
-            <button
-              key={a.id}
-              onClick={() => { setOpen(a.id); setActivePhase(0); }}
-              className={`w-full text-left px-5 py-5 transition-colors ${on ? 'bg-accent/10' : 'hover:bg-muted/50'}`}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className="h-10 w-10 rounded-xl flex items-center justify-center shrink-0 transition-transform"
-                  style={{ background: `${a.color}22`, border: `1.5px solid ${a.color}66` }}
-                >
-                  <Icon name={a.icon} size={18} style={{ color: a.color }} />
-                </div>
-                <div>
-                  <div className="text-xs font-display uppercase tracking-wide leading-tight" style={{ color: on ? a.color : undefined }}>
-                    {a.name.replace('Группа армий ', '')}
-                  </div>
-                  <div className="text-[11px] text-muted-foreground mt-0.5">{a.divisions} дивизий</div>
-                </div>
-                <Icon name="ChevronRight" size={14} className={`ml-auto shrink-0 text-muted-foreground transition-transform ${on ? 'rotate-90' : ''}`} />
-              </div>
-              {on && (
-                <div className="mt-3 h-1 rounded-full bg-border overflow-hidden">
-                  <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${Math.min(active.advanceKm / 16, 100)}%`, background: a.color }} />
-                </div>
-              )}
-            </button>
-          );
-        })}
-
-        <div className="px-5 py-4 text-[11px] text-muted-foreground/70 leading-relaxed">
-          22 июня 1941 года три группы армий атаковали СССР одновременно
+    <button
+      onClick={() => setOpen((x) => !x)}
+      className="w-full rounded-xl border border-border bg-background overflow-hidden text-left transition-all hover:border-primary/50 group"
+    >
+      <div className="relative h-24 overflow-hidden shrink-0">
+        <img src={v.photo} alt={v.name} className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/10 to-transparent" />
+        <span className="absolute bottom-2 left-3 text-[10px] font-display uppercase tracking-widest text-primary">{v.type}</span>
+        <div className="absolute top-2 right-2 h-5 w-5 rounded-full bg-background/70 flex items-center justify-center">
+          <Icon name={open ? 'ChevronUp' : 'ChevronDown'} size={11} className="text-muted-foreground" />
         </div>
       </div>
-
-      {/* Основная панель */}
-      <div className="bg-card/60 flex flex-col">
-        {/* Шапка группы армий */}
-        <div className="px-7 py-6 border-b border-border" style={{ borderLeftColor: active.color, borderLeftWidth: 3 }}>
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <span className="text-xs font-display uppercase tracking-widest text-muted-foreground">Удар вермахта · 1941</span>
-              <h3 className="text-2xl font-display uppercase mt-1 leading-tight">{active.name}</h3>
-              <div className="flex flex-wrap gap-4 mt-3">
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Icon name="User" size={12} /> {active.commander}
+      <div className="px-3 py-2.5">
+        <h5 className="font-display text-xs uppercase leading-tight">{v.name}</h5>
+        {open && (
+          <div className="mt-2 animate-float-up">
+            <p className="text-[11px] text-muted-foreground leading-relaxed mb-2">{v.desc}</p>
+            <div className="grid grid-cols-2 gap-1">
+              {v.specs.map((s) => (
+                <div key={s.label} className="rounded-md bg-muted/50 px-2 py-1">
+                  <div className="text-[9px] text-muted-foreground/70 uppercase">{s.label}</div>
+                  <div className="text-[11px] font-display mt-0.5">{s.value}</div>
                 </div>
-                <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                  <Icon name="Route" size={12} /> {active.direction}
-                </div>
-              </div>
-            </div>
-            <div className="text-right shrink-0">
-              <div className="text-3xl font-display" style={{ color: active.color }}>{active.advanceKm}</div>
-              <div className="text-xs text-muted-foreground">км прошла</div>
+              ))}
             </div>
           </div>
+        )}
+      </div>
+    </button>
+  );
+};
 
-          {/* Прогресс-бар */}
-          <div className="mt-5">
-            <div className="flex items-center justify-between text-xs text-muted-foreground mb-1.5">
-              <span>Глубина продвижения</span>
-              <span>{active.strength}</span>
+// ── Значок результата сражения ────────────────────────────────────────────────
+const ResultBadge = ({ result, label }: { result: string; label: string }) => {
+  const cls: Record<string, string> = {
+    'ussr-win': 'bg-green-500/15 text-green-400 border-green-500/30',
+    'ger-win': 'bg-red-500/15 text-red-400 border-red-500/30',
+    'draw': 'bg-yellow-500/15 text-yellow-400 border-yellow-500/30',
+  };
+  return (
+    <span className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[10px] font-display uppercase tracking-wide whitespace-nowrap ${cls[result]}`}>
+      {label}
+    </span>
+  );
+};
+
+type Tab = 'battles' | 'forces' | 'vehicles';
+
+const Invasion1941 = () => {
+  const [activeId, setActiveId] = useState<string>('center');
+  const [tab, setTab] = useState<Tab>('battles');
+  const [activeBattle, setActiveBattle] = useState<string | null>(null);
+
+  const ag = armyGroups.find((a) => a.id === activeId)!;
+  const gVehicles = vehiclesWehrmacht.filter((v) => ag.germanyVehicles.includes(v.id));
+  const uVehicles = vehiclesRedArmy.filter((v) => ag.ussrVehicles.includes(v.id));
+
+  const tabs: { id: Tab; label: string; icon: string }[] = [
+    { id: 'battles', label: 'Сражения', icon: 'Swords' },
+    { id: 'forces', label: 'Силы сторон', icon: 'Users' },
+    { id: 'vehicles', label: 'Техника', icon: 'Truck' },
+  ];
+
+  return (
+    <div className="rounded-2xl border border-border overflow-hidden">
+      <div className="grid lg:grid-cols-[260px_1fr]">
+
+        {/* ── Сайдбар ────────────────────────────────────────────────── */}
+        <div className="bg-card border-r border-border grain flex flex-col divide-y divide-border">
+          <div className="px-4 py-3 text-[11px] font-display uppercase tracking-widest text-muted-foreground">
+            Группы армий вермахта
+          </div>
+          {armyGroups.map((a) => {
+            const on = activeId === a.id;
+            return (
+              <button
+                key={a.id}
+                onClick={() => { setActiveId(a.id); setTab('battles'); setActiveBattle(null); }}
+                className={`w-full text-left px-4 py-4 transition-colors ${on ? 'bg-muted/30' : 'hover:bg-muted/20'}`}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="h-9 w-9 rounded-xl flex items-center justify-center shrink-0"
+                    style={{ background: `${a.color}22`, border: `1.5px solid ${a.color}55` }}
+                  >
+                    <Icon name={a.icon} size={16} style={{ color: a.color }} />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="text-xs font-display uppercase leading-tight" style={{ color: on ? a.color : undefined }}>
+                      {a.name.replace('Группа армий ', '')}
+                    </div>
+                    <div className="text-[11px] text-muted-foreground mt-0.5">{a.battles.length} сражения</div>
+                  </div>
+                  <Icon name="ChevronRight" size={12} className={`text-muted-foreground shrink-0 transition-transform ${on ? 'rotate-90' : ''}`} />
+                </div>
+                {on && (
+                  <div className="mt-2.5 h-1 rounded-full bg-border overflow-hidden">
+                    <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${Math.min(a.advanceKm / 16, 100)}%`, background: a.color }} />
+                  </div>
+                )}
+              </button>
+            );
+          })}
+
+          <div className="p-4 mt-auto">
+            <div className="rounded-lg bg-accent/10 border border-accent/20 p-3 text-[11px] text-muted-foreground leading-relaxed">
+              <Icon name="Info" size={11} className="text-accent inline mr-1" />
+              22 июня 1941 — три удара одновременно по всей советско-германской границе
             </div>
-            <div className="h-2 rounded-full bg-border overflow-hidden">
+          </div>
+        </div>
+
+        {/* ── Правая панель ────────────────────────────────────────────── */}
+        <div className="flex flex-col bg-card/60">
+
+          {/* Шапка */}
+          <div className="px-6 py-5 border-b border-border" style={{ borderLeftColor: ag.color, borderLeftWidth: 4 }}>
+            <div className="flex items-start justify-between gap-4 flex-wrap">
+              <div>
+                <span className="text-xs font-display uppercase tracking-widest text-muted-foreground">Операция «Барбаросса» · 1941</span>
+                <h3 className="text-xl md:text-2xl font-display uppercase mt-0.5 leading-tight">{ag.name}</h3>
+                <div className="flex flex-wrap gap-x-5 gap-y-1 mt-2">
+                  <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Icon name="User" size={12} /> {ag.commander}
+                  </span>
+                  <span className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Icon name="Route" size={12} /> {ag.direction}
+                  </span>
+                </div>
+              </div>
+              <div className="text-right shrink-0">
+                <div className="text-3xl font-display" style={{ color: ag.color }}>{ag.advanceKm} км</div>
+                <div className="text-xs text-muted-foreground">макс. продвижение</div>
+              </div>
+            </div>
+            <div className="mt-4 h-1.5 rounded-full bg-border overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-1000"
-                style={{ width: `${Math.min(active.advanceKm / 16, 100)}%`, background: `linear-gradient(90deg, ${active.color}, ${active.color}88)` }}
+                style={{ width: `${Math.min(ag.advanceKm / 16, 100)}%`, background: `linear-gradient(90deg, ${ag.color}, ${ag.color}77)` }}
               />
             </div>
           </div>
-        </div>
 
-        {/* Фазы наступления */}
-        <div className="px-7 py-5 flex-1">
-          <div className="text-xs font-display uppercase tracking-widest text-muted-foreground mb-4">Хроника наступления</div>
-
-          <div className="flex gap-3 mb-5 flex-wrap">
-            {active.phases.map((p, i) => (
+          {/* Вкладки */}
+          <div className="flex border-b border-border px-6 gap-1 pt-2">
+            {tabs.map((t) => (
               <button
-                key={i}
-                onClick={() => setActivePhase(i)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-display uppercase tracking-wide transition-all ${
-                  activePhase === i
-                    ? 'text-black font-semibold shadow-md'
-                    : 'bg-background text-muted-foreground hover:text-foreground'
+                key={t.id}
+                onClick={() => setTab(t.id)}
+                className={`flex items-center gap-1.5 px-4 py-2.5 text-xs font-display uppercase tracking-wide border-b-2 transition-colors ${
+                  tab === t.id ? 'border-primary text-primary' : 'border-transparent text-muted-foreground hover:text-foreground'
                 }`}
-                style={activePhase === i ? { background: active.color } : {}}
               >
-                {p.date}
+                <Icon name={t.icon} size={13} /> {t.label}
               </button>
             ))}
           </div>
 
-          {/* Карточка события */}
-          <div
-            key={`${active.id}-${activePhase}`}
-            className="rounded-xl border p-5 animate-float-up"
-            style={{ borderColor: `${active.color}55`, background: `${active.color}0d` }}
-          >
-            <div className="flex items-center gap-3 mb-3">
-              <div className="h-8 w-8 rounded-lg flex items-center justify-center" style={{ background: `${active.color}33` }}>
-                <Icon name={active.icon} size={16} style={{ color: active.color }} />
-              </div>
-              <span className="font-display text-sm uppercase tracking-wide" style={{ color: active.color }}>
-                {active.phases[activePhase].date}
-              </span>
-            </div>
-            <h4 className="font-display text-lg uppercase leading-tight mb-2">
-              {active.phases[activePhase].event}
-            </h4>
-            <p className="text-sm text-muted-foreground leading-relaxed">
-              {active.phases[activePhase].detail}
-            </p>
-          </div>
+          {/* Контент */}
+          <div className="flex-1 overflow-auto p-6">
 
-          {/* Итог */}
-          <div className="mt-5 rounded-xl border border-border bg-background p-4 flex items-start gap-3">
-            <Icon name={outcomeLabel[active.outcome].icon} size={18} className={outcomeLabel[active.outcome].cls + ' shrink-0 mt-0.5'} />
-            <div>
-              <span className={`text-xs font-display uppercase tracking-wide ${outcomeLabel[active.outcome].cls}`}>
-                Итог: {outcomeLabel[active.outcome].label}
-              </span>
-              <p className="text-sm text-muted-foreground mt-1">{active.result}</p>
-            </div>
+            {/* ── СРАЖЕНИЯ ── */}
+            {tab === 'battles' && (
+              <div className="space-y-2">
+                {ag.battles.map((b) => {
+                  const isOpen = activeBattle === b.id;
+                  return (
+                    <div key={b.id} className="rounded-xl border border-border overflow-hidden">
+                      <button
+                        onClick={() => setActiveBattle(isOpen ? null : b.id)}
+                        className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-muted/30 transition-colors"
+                      >
+                        <div className="h-8 w-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: `${ag.color}22` }}>
+                          <Icon name="Swords" size={14} style={{ color: ag.color }} />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <div className="font-display text-sm uppercase leading-tight">{b.name}</div>
+                          <div className="text-[11px] text-muted-foreground mt-0.5">{b.dates} · {b.location}</div>
+                        </div>
+                        <ResultBadge result={b.result} label={b.resultLabel} />
+                        <Icon name={isOpen ? 'ChevronUp' : 'ChevronDown'} size={13} className="text-muted-foreground ml-1 shrink-0" />
+                      </button>
+                      {isOpen && (
+                        <div className="px-4 pb-4 pt-3 border-t border-border bg-muted/10 animate-float-up">
+                          <p className="text-sm font-medium mb-1">{b.desc}</p>
+                          <p className="text-xs text-muted-foreground leading-relaxed">{b.details}</p>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+                <div className="mt-3 rounded-xl border border-border bg-background p-4 flex items-start gap-3">
+                  {ag.outcome === 'failed'
+                    ? <Icon name="XCircle" size={16} className="text-green-400 shrink-0 mt-0.5" />
+                    : <Icon name="MinusCircle" size={16} className="text-yellow-400 shrink-0 mt-0.5" />
+                  }
+                  <div>
+                    <span className="text-xs font-display uppercase tracking-wide text-muted-foreground">Итог</span>
+                    <p className="text-sm mt-1">{ag.outcomeFull}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── СИЛЫ СТОРОН ── */}
+            {tab === 'forces' && (
+              <div className="grid md:grid-cols-2 gap-4">
+                {/* Вермахт */}
+                <div className="rounded-xl border border-red-500/30 overflow-hidden">
+                  <div className="bg-red-500/10 px-4 py-3 border-b border-red-500/20 flex items-center gap-2">
+                    <Icon name="Shield" size={15} className="text-red-400" />
+                    <span className="font-display text-sm uppercase tracking-wide text-red-400">Вермахт</span>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    <div>
+                      <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Численность</div>
+                      <div className="text-sm font-display mt-0.5">{ag.germanyForce}</div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="rounded-lg bg-muted/30 p-3 text-center">
+                        <Icon name="Truck" className="mx-auto mb-1 text-red-400" size={18} />
+                        <div className="text-xl font-display text-red-400">{ag.germanyTanks.toLocaleString('ru')}</div>
+                        <div className="text-[10px] text-muted-foreground">танков</div>
+                      </div>
+                      <div className="rounded-lg bg-muted/30 p-3 text-center">
+                        <Icon name="Wind" className="mx-auto mb-1 text-red-400" size={18} />
+                        <div className="text-xl font-display text-red-400">{ag.germanyAircraft.toLocaleString('ru')}</div>
+                        <div className="text-[10px] text-muted-foreground">самолётов</div>
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-red-500/20 bg-red-500/5 p-3">
+                      <div className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Потери (1941)</div>
+                      <div className="text-xs">{ag.germanyLoss}</div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Красная Армия */}
+                <div className="rounded-xl border border-green-600/30 overflow-hidden">
+                  <div className="bg-green-600/10 px-4 py-3 border-b border-green-600/20 flex items-center gap-2">
+                    <Icon name="Star" size={15} className="text-green-400" />
+                    <span className="font-display text-sm uppercase tracking-wide text-green-400">Красная Армия</span>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    <div>
+                      <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Командование</div>
+                      <div className="text-xs font-display mt-0.5">{ag.ussrCommander}</div>
+                    </div>
+                    <div>
+                      <div className="text-[10px] text-muted-foreground uppercase tracking-wide">Численность</div>
+                      <div className="text-sm font-display mt-0.5">{ag.ussrForce}</div>
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="rounded-lg bg-muted/30 p-3 text-center">
+                        <Icon name="Truck" className="mx-auto mb-1 text-green-400" size={18} />
+                        <div className="text-xl font-display text-green-400">{ag.ussrTanks.toLocaleString('ru')}</div>
+                        <div className="text-[10px] text-muted-foreground">танков</div>
+                      </div>
+                      <div className="rounded-lg bg-muted/30 p-3 text-center">
+                        <Icon name="Wind" className="mx-auto mb-1 text-green-400" size={18} />
+                        <div className="text-xl font-display text-green-400">{ag.ussrAircraft.toLocaleString('ru')}</div>
+                        <div className="text-[10px] text-muted-foreground">самолётов</div>
+                      </div>
+                    </div>
+                    <div className="rounded-lg border border-green-600/20 bg-green-600/5 p-3">
+                      <div className="text-[10px] text-muted-foreground uppercase tracking-wide mb-1">Потери (1941)</div>
+                      <div className="text-xs">{ag.ussrLoss}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* ── ТЕХНИКА ── */}
+            {tab === 'vehicles' && (
+              <div className="space-y-5">
+                <div>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="h-px flex-1 bg-red-500/30" />
+                    <span className="text-[11px] font-display uppercase tracking-widest text-red-400 px-1">Техника вермахта</span>
+                    <div className="h-px flex-1 bg-red-500/30" />
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {gVehicles.map((v) => <VehicleCard key={v.id} v={v} />)}
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="h-px flex-1 bg-green-600/30" />
+                    <span className="text-[11px] font-display uppercase tracking-widest text-green-400 px-1">Техника Красной Армии</span>
+                    <div className="h-px flex-1 bg-green-600/30" />
+                  </div>
+                  <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3">
+                    {uVehicles.map((v) => <VehicleCard key={v.id} v={v} />)}
+                  </div>
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
       </div>
