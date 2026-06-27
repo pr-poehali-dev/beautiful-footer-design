@@ -2,7 +2,10 @@ import Icon from '@/components/ui/icon';
 import HeroCitiesCards from '@/components/HeroCitiesCards';
 import Invasion1941 from '@/components/Invasion1941';
 import StatsSection from '@/components/StatsSection';
+import EternalFlame from '@/components/EternalFlame';
+import VoicesOfWar from '@/components/VoicesOfWar';
 import SiteFooter from '@/components/SiteFooter';
+import NavSidebar from '@/components/NavSidebar';
 import { timeline } from '@/data/content';
 
 const heroImg = 'https://cdn.poehali.dev/projects/7836e47e-38ae-4724-91ec-b2ed2318e8c0/files/81542781-7838-41ef-bb0a-83445c7faae1.jpg';
@@ -10,6 +13,7 @@ const heroImg = 'https://cdn.poehali.dev/projects/7836e47e-38ae-4724-91ec-b2ed23
 const Index = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
+      <NavSidebar />
       {/* HERO */}
       <header className="relative min-h-[88vh] flex items-end overflow-hidden">
         <img src={heroImg} alt="Мемориал" className="absolute inset-0 h-full w-full object-cover" />
@@ -42,7 +46,7 @@ const Index = () => {
       <StatsSection />
 
       {/* HERO CITIES */}
-      <section id="cities" className="container py-20">
+      <section id="cities" className="container py-20" style={{ scrollMarginTop: 80 }}>
         <div className="mb-10">
           <span className="text-xs font-display uppercase tracking-widest text-primary">12 городов</span>
           <h2 className="text-4xl md:text-5xl font-display uppercase mt-2">Города-герои</h2>
@@ -62,6 +66,12 @@ const Index = () => {
           <Invasion1941 />
         </div>
       </section>
+
+      {/* ВЕЧНЫЙ ОГОНЬ */}
+      <EternalFlame />
+
+      {/* ГОЛОСА ВОЙНЫ */}
+      <VoicesOfWar />
 
       {/* TIMELINE */}
       <section id="timeline" className="container py-20">
